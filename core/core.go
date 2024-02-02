@@ -82,16 +82,16 @@ func RunBazelisk(args []string, repos *Repositories) (int, error) {
 // repositories.
 func RunBazeliskWithArgsFunc(argsFunc ArgsFunc, repos *Repositories) (int, error) {
 
-	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig(), nil)
+	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig())
 }
 
-func RunBazeliskWithArgsFuncAndConfigWithOut(argsFunc ArgsFunc, repos *Repositories, config config.Config, w io.Writer) (int, error) {
-	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig(), w)
+func RunBazeliskWithArgsFuncAndConfig(argsFunc ArgsFunc, repos *Repositories, config config.Config) (int, error) {
+	return RunBazeliskWithArgsFuncAndConfigWithOut(argsFunc, repos, MakeDefaultConfig(), nil)
 }
 
-// RunBazeliskWithArgsFuncAndConfig runs the main Bazelisk logic for the given ArgsFunc and Bazel
+// RunBazeliskWithArgsFuncAndConfigWithOut runs the main Bazelisk logic for the given ArgsFunc and Bazel
 // repositories and config.
-func RunBazeliskWithArgsFuncAndConfig(argsFunc ArgsFunc, repos *Repositories, config config.Config, w io.Writer) (int, error) {
+func RunBazeliskWithArgsFuncAndConfigWithOut(argsFunc ArgsFunc, repos *Repositories, config config.Config, w io.Writer) (int, error) {
 
 	userAgentOnce.Do(func() {
 		httputil.UserAgent = getUserAgent(config)
