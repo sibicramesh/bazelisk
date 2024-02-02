@@ -43,8 +43,7 @@ var (
 	// BazeliskVersion is filled in via x_defs when building a release.
 	BazeliskVersion = "development"
 
-	fileConfig     map[string]string
-	fileConfigOnce sync.Once
+	userAgentOnce sync.Once
 )
 
 // ArgsFunc is a function that receives a resolved Bazel version and returns the arguments to invoke
@@ -83,13 +82,20 @@ func RunBazelisk(args []string, repos *Repositories) (int, error) {
 // repositories.
 func RunBazeliskWithArgsFunc(argsFunc ArgsFunc, repos *Repositories) (int, error) {
 
-	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig())
+	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig(), nil)
+}
+
+func RunBazeliskWithArgsFuncAndConfigWithOut(argsFunc ArgsFunc, repos *Repositories, config config.Config, w io.Writer) (int, error) {
+	return RunBazeliskWithArgsFuncAndConfig(argsFunc, repos, MakeDefaultConfig(), w)
 }
 
 // RunBazeliskWithArgsFuncAndConfig runs the main Bazelisk logic for the given ArgsFunc and Bazel
 // repositories and config.
-func RunBazeliskWithArgsFuncAndConfig(argsFunc ArgsFunc, repos *Repositories, config config.Config) (int, error) {
-	httputil.UserAgent = getUserAgent(config)
+func RunBazeliskWithArgsFuncAndConfig(argsFunc ArgsFunc, repos *Repositories, config config.Config, w io.Writer) (int, error) {
+
+	userAgentOnce.Do(func() {
+		httputil.UserAgent = getUserAgent(config)
+	})
 
 	bazeliskHome := config.Get("BAZELISK_HOME")
 	if len(bazeliskHome) == 0 {
@@ -140,7 +146,7 @@ func RunBazeliskWithArgsFuncAndConfig(argsFunc ArgsFunc, repos *Repositories, co
 	// --print_env must be the first argument.
 	if len(args) > 0 && args[0] == "--print_env" {
 		// print environment variables for sub-processes
-		cmd := makeBazelCmd(bazelPath, args, nil, config)
+		cmd := makeBazelCmd(bazelPath, args, w, config)
 		for _, val := range cmd.Env {
 			fmt.Println(val)
 		}
